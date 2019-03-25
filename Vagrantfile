@@ -24,6 +24,8 @@ Vagrant.configure("2") do |config|
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # NOTE: This will enable public access to the opened port
   config.vm.network "forwarded_port", guest: 8000, host: 8000
+  config.vm.network "forwarded_port", guest: 3306, host: 3306
+  config.vm.network "forwarded_port", guest: 8081, host: 8081
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine and only allow access
@@ -38,12 +40,13 @@ Vagrant.configure("2") do |config|
   # Bridged networks make the machine appear as another physical device on
   # your network.
   # config.vm.network "public_network"
+  #config.vm.provision :shell, :path => "install.sh"
 
   # Share an additional folder to the guest VM. The first argument is
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder "./data", "/vagrant-data"
+  config.vm.synced_folder "./", "/home/vagrant/app" , :mount_options => ["dmode=777", "fmode=766"]
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -65,4 +68,19 @@ Vagrant.configure("2") do |config|
   # documentation for more information about their specific syntax and use.
   #config.vm.provision "shell", inline: <<-SHELL
   #SHELL
+
+  # Mysql Part
+  $script_mysql = <<-SCRIPT
+    apt-get update && \
+    apt-get install -y mysql-server-5.7 && \
+    mysql -e "create user 'devops'@'%' identified by 'mestre';"  && \
+    mysql -e "create database todo;" && \
+    mysql -e "grant all privileges on *.* to devops@'%' identified by 'mestre';"
+   SCRIPT
+  config.vm.provision "shell", inline: $script_mysql
+  config.vm.provision "shell",
+    inline: "cat /configs/mysqld.cnf > /etc/mysql/mysql.conf.d/mysqld.cnf"
+  config.vm.provision "shell",
+    inline: "service mysql restart"
+  config.vm.synced_folder "./configs", "/configs"
 end
