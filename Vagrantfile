@@ -23,9 +23,9 @@ Vagrant.configure("2") do |config|
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # NOTE: This will enable public access to the opened port
-  config.vm.network "forwarded_port", guest: 8000, host: 8000
+  config.vm.network "forwarded_port", guest: 81, host: 81
   config.vm.network "forwarded_port", guest: 3306, host: 3306
-  config.vm.network "forwarded_port", guest: 8081, host: 8081
+  config.vm.network "forwarded_port", guest: 8080, host: 8080
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine and only allow access
@@ -46,19 +46,22 @@ Vagrant.configure("2") do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder "./", "/home/vagrant/app" , :mount_options => ["dmode=777", "fmode=766"]
+  #config.vm.synced_folder "./", "/home/vagrant/workspace" , :mount_options => ["dmode=777", "fmode=766"]
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
   #
-  # config.vm.provider "virtualbox" do |vb|
+  config.vm.provider "virtualbox" do |vb|
   #   # Display the VirtualBox GUI when booting the machine
   #   vb.gui = true
   #
   #   # Customize the amount of memory on the VM:
-  #   vb.memory = "1024"
-  # end
+    vb.memory = "2048"
+  end
+  # Enable Dynamic Swap Space to prevent Out of Memory crashes
+  config.vm.provision "shell", inline: "sudo apt install swapspace -y"
+
   #
   # View the documentation for the provider you are using for more
   # information on available options.
@@ -72,15 +75,24 @@ Vagrant.configure("2") do |config|
   # Mysql Part
   $script_mysql = <<-SCRIPT
     apt-get update && \
-    apt-get install -y mysql-server-5.7 && \
+    apt-get install -y openjdk-8-jdk  mysql-server-5.7 && \
     mysql -e "create user 'devops'@'%' identified by 'mestre';"  && \
     mysql -e "create database todo;" && \
     mysql -e "grant all privileges on *.* to devops@'%' identified by 'mestre';"
-   SCRIPT
+  SCRIPT
   config.vm.provision "shell", inline: $script_mysql
   config.vm.provision "shell",
     inline: "cat /configs/mysqld.cnf > /etc/mysql/mysql.conf.d/mysqld.cnf"
   config.vm.provision "shell",
     inline: "service mysql restart"
   config.vm.synced_folder "./configs", "/configs"
+
+# Jenkins Part
+$script_jenkins = <<-SCRIPT
+  wget -q -O - https://pkg.jenkins.io/debian/jenkins-ci.org.key | apt-key add - && \
+  sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list' && \
+  apt-get update && \
+  apt-get install jenkins -y
+SCRIPT
+config.vm.provision "shell", inline: $script_jenkins
 end
