@@ -60,7 +60,7 @@ Vagrant.configure("2") do |config|
     vb.memory = "2048"
   end
   # Enable Dynamic Swap Space to prevent Out of Memory crashes
-  config.vm.provision "shell", inline: "sudo apt install swapspace -y"
+  config.vm.provision "shell", inline: "sudo apt-get update && sudo apt-get install swapspace -y"
 
   #
   # View the documentation for the provider you are using for more
