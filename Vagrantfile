@@ -87,12 +87,6 @@ Vagrant.configure("2") do |config|
     inline: "service mysql restart"
   config.vm.synced_folder "./configs", "/configs"
 
-# Jenkins Part
-$script_jenkins = <<-SCRIPT
-  wget -q -O - https://pkg.jenkins.io/debian/jenkins-ci.org.key | apt-key add - && \
-  sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list' && \
-  apt-get update && \
-  apt-get install jenkins -y
-SCRIPT
-config.vm.provision "shell", inline: $script_jenkins
-end
+# Extra
+config.vm.provision "shell",
+  inline: "chmod +x /vagrant/scripts/*"
