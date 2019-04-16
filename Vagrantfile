@@ -24,6 +24,7 @@ Vagrant.configure("2") do |config|
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # NOTE: This will enable public access to the opened port
   config.vm.network "forwarded_port", guest: 81, host: 81
+  config.vm.network "forwarded_port", guest: 80, host: 80
   config.vm.network "forwarded_port", guest: 3306, host: 3306
   config.vm.network "forwarded_port", guest: 8080, host: 8080
 
@@ -78,6 +79,7 @@ Vagrant.configure("2") do |config|
     apt-get install -y openjdk-8-jdk  mysql-server-5.7 && \
     mysql -e "create user 'devops'@'%' identified by 'mestre';"  && \
     mysql -e "create database todo;" && \
+    mysql -e "create database todo_dev;" && \
     mysql -e "grant all privileges on *.* to devops@'%' identified by 'mestre';"
   SCRIPT
   config.vm.provision "shell", inline: $script_mysql
@@ -88,5 +90,6 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder "./configs", "/configs"
 
 # Extra
-config.vm.provision "shell",
-  inline: "chmod +x /vagrant/scripts/*"
+  config.vm.provision "shell",
+    inline: "chmod +x /vagrant/scripts/*"
+end
